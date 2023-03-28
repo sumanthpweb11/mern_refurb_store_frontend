@@ -1,13 +1,36 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import { ConfigProvider } from "antd";
+import reportWebVitals from "./reportWebVitals";
+import { Provider } from "react-redux";
+import store from "./redux/store";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
+
+// antd custom theme for default components
+const antdCustomThemeSetup = {
+  components: {
+    Button: {
+      colorPrimary: "#E21818",
+      colorPrimaryHover: "#DF2E38",
+      borderRadius: "0",
+    },
+  },
+  token: {
+    colorPrimary: "#E21818",
+    colorPrimaryHover: "#DF2E38",
+  },
+};
+
 root.render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <ConfigProvider theme={antdCustomThemeSetup}>
+        <App />
+      </ConfigProvider>
+    </Provider>
   </React.StrictMode>
 );
 
