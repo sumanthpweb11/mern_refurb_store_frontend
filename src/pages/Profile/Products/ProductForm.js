@@ -1,9 +1,10 @@
 import { Modal, Tabs, Form, Input, Row, Col, message } from "antd";
 import TextArea from "antd/es/input/TextArea";
-// import { useDispatch, useSelector } from "react-redux";
-// import { AddProduct, EditProduct } from "../../../apicalls/products";
-// import { SetLoader } from "../../../redux/loadersSlice";
-import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { setLoader } from "../../../redux/loaderSlice";
+import { AddProduct, EditProduct } from "../../../apicalls/products";
+import Images from "./Images";
 // import Images from "./Images";
 
 const additionalThings = [
@@ -32,42 +33,49 @@ const rules = [
   },
 ];
 
-function ProductForm2({ showProductForm, setShowProductForm }) {
-  // const [selectedTab = "1", setSelectedTab] = React.useState("1");
-  // const dispatch = useDispatch();
-  // const { user } = useSelector((state) => state.users);
+function ProductForm({
+  showProductForm,
+  setShowProductForm,
+  selectedProduct,
+  getData,
+}) {
+  const [selectedTab = "1", setSelectedTab] = useState("1");
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.users);
   const onFinish = async (values) => {
-    console.log(values);
-    // try {
-    //   dispatch(SetLoader(true));
-    //   let response = null;
-    //   if (selectedProduct) {
-    //     response = await EditProduct(selectedProduct._id, values);
-    //   } else {
-    //     values.seller = user._id;
-    //     values.status = "pending";
-    //     response = await AddProduct(values);
-    //   }
-    //   dispatch(SetLoader(false));
-    //   if (response.success) {
-    //     message.success(response.message);
-    //     getData();
-    //     setShowProductForm(false);
-    //   } else {
-    //     message.error(response.message);
-    //   }
-    // } catch (error) {
-    //   dispatch(SetLoader(false));
-    //   message.error(error.message);
-    // }
+    //console.log(values);
+
+    try {
+      dispatch(setLoader(true));
+      let response = null;
+      if (selectedProduct) {
+        response = await EditProduct(selectedProduct._id, values);
+      } else {
+        values.seller = user._id;
+        values.status = "pending";
+        response = await AddProduct(values);
+      }
+
+      dispatch(setLoader(false));
+      if (response.success) {
+        getData();
+        message.success(response.message);
+        setShowProductForm(false);
+      } else {
+        message.error(response.message);
+      }
+    } catch (error) {
+      dispatch(setLoader(false));
+      message.error(error.message);
+    }
   };
   const formRef = React.useRef(null);
 
-  // useEffect(() => {
-  //   if (selectedProduct) {
-  //     formRef.current.setFieldsValue(selectedProduct);
-  //   }
-  // }, [selectedProduct]);
+  useEffect(() => {
+    if (selectedProduct) {
+      formRef.current.setFieldsValue(selectedProduct);
+    }
+  }, [selectedProduct]);
   return (
     <Modal
       title=""
@@ -75,20 +83,20 @@ function ProductForm2({ showProductForm, setShowProductForm }) {
       onCancel={() => setShowProductForm(false)}
       centered
       width={1000}
-      okText="Save"
+      okText={selectedProduct ? "Update" : "Save"}
       onOk={() => {
         formRef.current.submit();
       }}
-      // {...(selectedTab === "2" && { footer: false })}
+      {...(selectedTab === "2" && { footer: false })}
     >
       <div>
         <h1 className="text-primary text-2xl text-center font-semibold uppercase">
-          Add Product
+          {selectedProduct ? "Edit Product" : "Add Product"}
         </h1>
         <Tabs
           defaultActiveKey="1"
-          // activeKey={selectedTab}
-          // onChange={(key) => setSelectedTab(key)}
+          activeKey={selectedTab}
+          onChange={(key) => setSelectedTab(key)}
         >
           <Tabs.TabPane tab="General" key="1">
             <Form layout="vertical" ref={formRef} onFinish={onFinish}>
@@ -137,12 +145,12 @@ function ProductForm2({ showProductForm, setShowProductForm }) {
                       <Input
                         type="checkbox"
                         value={item.name}
-                        // onChange={(e) => {
-                        //   formRef.current.setFieldsValue({
-                        //     [item.name]: e.target.checked,
-                        //   });
-                        // }}
-                        // checked={formRef.current?.getFieldValue(item.name)}
+                        onChange={(e) => {
+                          formRef.current.setFieldsValue({
+                            [item.name]: e.target.checked,
+                          });
+                        }}
+                        checked={formRef.current?.getFieldValue(item.name)}
                       />
                     </Form.Item>
                   );
@@ -150,10 +158,18 @@ function ProductForm2({ showProductForm, setShowProductForm }) {
               </div>
             </Form>
           </Tabs.TabPane>
+
+          <Tabs.TabPane tab="Images" key="2" disabled={!selectedProduct}>
+            <Images
+              selectedProduct={selectedProduct}
+              getData={getData}
+              setShowProductForm={setShowProductForm}
+            />
+          </Tabs.TabPane>
         </Tabs>
       </div>
     </Modal>
   );
 }
 
-export default ProductForm2;
+export default ProductForm;
